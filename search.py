@@ -93,13 +93,6 @@ def depthFirstSearch(problem: SearchProblem):
     
     if (problem.isGoalState(startState)):
     	return []
-    
-    from game import Directions
-    s = Directions.SOUTH
-    w = Directions.WEST
-    n = Directions.NORTH
-    e = Directions.EAST
-    
     expanded = set()
     stack = util.Stack()
     stack.push((startState, []))
@@ -111,19 +104,8 @@ def depthFirstSearch(problem: SearchProblem):
            expanded.add(state[0])
            for successor in problem.getSuccessors(state[0]):
               path = list(state[1])
-              if (successor[1] == "South"):
-                 path.append(s)
-              if (successor[1] == "West"):
-                 path.append(w)
-              if (successor[1] == "North"):
-                 path.append(n)
-              if (successor[1] == "East"):
-                 path.append(e)
+              path.append(successor[1])
               stack.push((successor[0], path))
-    
-    print("Start:", problem.getStartState())
-    print("Is the start a goal?", problem.isGoalState(problem.getStartState()))
-    print("Start's successors:", problem.getSuccessors((5,4)))
     
 
 def breadthFirstSearch(problem: SearchProblem):
