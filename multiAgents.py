@@ -107,7 +107,7 @@ class ReflexAgent(Agent):
         # Reward for getting closer to scared ghost and punishment for getting farther from scared ghost
         if sum(newScaredTimes) > 0:
             evaluation = evaluation + 200 if min(newDistanceFromGhosts) < min(currentDistanceFromGhosts) else evaluation - 100
-        # Reward for getting farther from ghost and punishment for getting closer to ghost
+        # Punishment for getting closer to ghost
         else:
             evaluation = evaluation if min(newDistanceFromGhosts) > min(currentDistanceFromGhosts) else evaluation - 100
             
@@ -172,7 +172,39 @@ class MinimaxAgent(MultiAgentSearchAgent):
         Returns whether or not the game state is a losing state
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+
+        def value(state, agentIndex, depth):
+            if state.isWin() or state.isLose():
+                return self.evaluationFunction(state)
+            if depth == self.depth and agentIndex == state.getNumAgents() - 1:
+                return self.evaluationFunction(state)
+            if agentIndex == 0:
+                return minValue(state, agentIndex + 1, depth)
+            if agentIndex == state.getNumAgents() - 1:
+                return maxValue(state, 0, depth + 1)
+        
+        def maxValue(state, agentIndex, depth):
+            v = -1 * float("-inf")
+            actions = state.getLegalActions(agentIndex)
+            for action in actions:
+                sucessorGameState = state.generateSuccessor(agentIndex, action)
+                v = max(v, value(successorGameState, agentIndex, depth))
+            return v
+        
+        def minValue(state, agentIndex, depth):
+            v = float("inf")
+            actions = state.getLegalActions(agentIndex)
+            for action in actions:
+                sucessorGameState = state.generateSuccessor(agentIndex, action)
+                v = min(v, value(successorGameState, agentIndex, depth))
+            return v
+       
+        actions = gameState.getLegalActions(0)
+        evaluations = {}
+        for action in actions:
+            successorGameState = gameState.generateSuccessor(0, action)
+            evaluations[value(successorGameState, 0, 1)] = action
+        return evaluations[max(evaluations.keys())]
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
