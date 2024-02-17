@@ -70,12 +70,48 @@ class ReflexAgent(Agent):
         # Useful information you can extract from a GameState (pacman.py)
         successorGameState = currentGameState.generatePacmanSuccessor(action)
         newPos = successorGameState.getPacmanPosition()
-        newFood = successorGameState.getFood()
+        newFood = successorGameState.getFood().asList()
         newGhostStates = successorGameState.getGhostStates()
         newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
 
         "*** YOUR CODE HERE ***"
-        return successorGameState.getScore()
+        
+        # Reward for winning the game
+        if successorGameState.isWin():
+            return float('inf')
+
+        evaluation =  successorGameState.getScore() - currentGameState.getScore()
+        
+        newDistanceFromFoods = [manhattanDistance(newPos, food) for food in newFood]
+        currentDistanceFromFoods = [manhattanDistance(currentGameState.getPacmanPosition(), food) for food in currentGameState.getFood().asList()]
+        # Reward for eating food
+        if currentGameState.getNumFood() > successorGameState.getNumFood():
+            evaluation = evaluation + 200
+        # Punishment for not eating food
+        else:
+            evaluation = evaluation - 100
+        # Punishment for remaining foods
+        evaluation = evaluation - 10 * len(newFood)
+        # Reward for getting closer to food
+        if min(newDistanceFromFoods) < min(currentDistanceFromFoods):
+            evaluation = evaluation + 100
+        
+        # Reward for eating pellet
+        if newPos in currentGameState.getCapsules():
+            evaluation = evaluation + 200
+        
+        newDistanceFromGhosts = [manhattanDistance(newPos, ghost.getPosition()) for ghost in newGhostStates]
+        newDangerousDistance = [1 if distance < 5 else 0 for distance in newDistanceFromGhosts]
+        currentDistanceFromGhosts = [manhattanDistance(currentGameState.getPacmanPosition(), ghost.getPosition()) for ghost in currentGameState.getGhostStates()]
+        currentDangerousDistance = [1 if distance < 5 else 0 for distance in currentDistanceFromGhosts]
+        # Reward for getting closer to scared ghost and punishment for getting farther from scared ghost
+        if sum(newScaredTimes) > 0:
+            evaluation = evaluation + 200 if min(newDistanceFromGhosts) < min(currentDistanceFromGhosts) else evaluation - 100
+        # Reward for getting farther from ghost and punishment for getting closer to ghost
+        else:
+            evaluation = evaluation if min(newDistanceFromGhosts) > min(currentDistanceFromGhosts) else evaluation - 100
+            
+        return evaluation
 
 def scoreEvaluationFunction(currentGameState: GameState):
     """
