@@ -172,39 +172,48 @@ class MinimaxAgent(MultiAgentSearchAgent):
         Returns whether or not the game state is a losing state
         """
         "*** YOUR CODE HERE ***"
-
-        def value(state, agentIndex, depth):
-            if state.isWin() or state.isLose():
-                return self.evaluationFunction(state)
-            if depth == self.depth and agentIndex == state.getNumAgents() - 1:
-                return self.evaluationFunction(state)
-            if agentIndex == 0:
-                return minValue(state, agentIndex + 1, depth)
-            if agentIndex == state.getNumAgents() - 1:
-                return maxValue(state, 0, depth + 1)
-        
-        def maxValue(state, agentIndex, depth):
-            v = -1 * float("-inf")
-            actions = state.getLegalActions(agentIndex)
-            for action in actions:
-                sucessorGameState = state.generateSuccessor(agentIndex, action)
-                v = max(v, value(successorGameState, agentIndex, depth))
-            return v
-        
-        def minValue(state, agentIndex, depth):
-            v = float("inf")
-            actions = state.getLegalActions(agentIndex)
-            for action in actions:
-                sucessorGameState = state.generateSuccessor(agentIndex, action)
-                v = min(v, value(successorGameState, agentIndex, depth))
-            return v
        
         actions = gameState.getLegalActions(0)
-        evaluations = {}
+        maxValue = float('-inf')
+        maxAction = Directions.STOP
         for action in actions:
             successorGameState = gameState.generateSuccessor(0, action)
-            evaluations[value(successorGameState, 0, 1)] = action
-        return evaluations[max(evaluations.keys())]
+            v = self.value(successorGameState, 1, 0);
+            if v > maxValue:
+                maxValue = v
+                maxAction = action
+        return maxAction
+        
+    def value(self, state, agentIndex, depth):
+        # Terminal states or reached maximum depth
+        if depth == self.depth or state.isWin() or state.isLose():
+            return self.evaluationFunction(state)
+        # Pacman is a max player
+        if agentIndex == 0:
+            return self.maxValue(state, 0, depth)
+        # Ghosts are min players
+        return self.minValue(state, agentIndex, depth)
+        
+    def maxValue(self, state, agentIndex, depth):
+        v = float('-inf')
+        actions = state.getLegalActions(agentIndex)
+        for action in actions:
+            successorGameState = state.generateSuccessor(agentIndex, action)
+            v = max(v, self.value(successorGameState, agentIndex + 1, depth))
+        return v
+        
+    def minValue(self, state, agentIndex, depth):
+        v = float('inf')
+        actions = state.getLegalActions(agentIndex)
+        for action in actions:
+            successorGameState = state.generateSuccessor(agentIndex, action)
+            # All ghosts moved, increment depth and return to Pacman
+            if agentIndex == state.getNumAgents() - 1:
+                v = min(v, self.value(successorGameState, 0, depth + 1))
+            # Next ghost move
+            else:
+                v = min(v, self.value(successorGameState, agentIndex + 1, depth)) 
+        return v
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
