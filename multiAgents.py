@@ -75,7 +75,6 @@ class ReflexAgent(Agent):
         newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
 
         "*** YOUR CODE HERE ***"
-        
         # Reward for winning the game
         if successorGameState.isWin():
             return float('inf')
@@ -101,9 +100,7 @@ class ReflexAgent(Agent):
             evaluation = evaluation + 200
         
         newDistanceFromGhosts = [manhattanDistance(newPos, ghost.getPosition()) for ghost in newGhostStates]
-        newDangerousDistance = [1 if distance < 5 else 0 for distance in newDistanceFromGhosts]
         currentDistanceFromGhosts = [manhattanDistance(currentGameState.getPacmanPosition(), ghost.getPosition()) for ghost in currentGameState.getGhostStates()]
-        currentDangerousDistance = [1 if distance < 5 else 0 for distance in currentDistanceFromGhosts]
         # Reward for getting closer to scared ghost and punishment for getting farther from scared ghost
         if sum(newScaredTimes) > 0:
             evaluation = evaluation + 200 if min(newDistanceFromGhosts) < min(currentDistanceFromGhosts) else evaluation - 100
@@ -172,7 +169,6 @@ class MinimaxAgent(MultiAgentSearchAgent):
         Returns whether or not the game state is a losing state
         """
         "*** YOUR CODE HERE ***"
-       
         actions = gameState.getLegalActions(0)
         maxValue = float('-inf')
         maxAction = Directions.STOP
@@ -225,7 +221,6 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         Returns the minimax action using self.depth and self.evaluationFunction
         """
         "*** YOUR CODE HERE ***"
-        
         actions = gameState.getLegalActions(0)
         maxValue = float('-inf')
         maxAction = Directions.STOP
@@ -339,10 +334,33 @@ def betterEvaluationFunction(currentGameState: GameState):
     Your extreme ghost-hunting, pellet-nabbing, food-gobbling, unstoppable
     evaluation function (question 5).
 
-    DESCRIPTION: <write something here so we know what you did>
+    DESCRIPTION: Reward for smaller sum of distance from foods. Reward for
+    positive scared times. If ghosts are scared, punish for larger distance
+    to ghosts, otherwise, reward for larger distance from ghosts.
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    pos = currentGameState.getPacmanPosition()
+    food = currentGameState.getFood().asList()
+    ghostStates = currentGameState.getGhostStates()
+    scaredTimes = [ghostState.scaredTimer for ghostState in ghostStates]
+    
+    if currentGameState.isWin():
+        return float('inf')
+    if currentGameState.isLose():
+        return float('-inf')
+
+    evaluation =  currentGameState.getScore()
+
+    distanceFromFoods = [manhattanDistance(currentGameState.getPacmanPosition(), food) for food in currentGameState.getFood().asList()]
+    evaluation = evaluation + 1/sum(distanceFromFoods)
+        
+    distanceFromGhosts = [manhattanDistance(pos, ghost.getPosition()) for ghost in ghostStates]
+    if sum(scaredTimes) > 0:
+        evaluation = evaluation + sum(scaredTimes) - sum(distanceFromGhosts)
+    else:
+        evaluation = evaluation + sum(distanceFromGhosts)
+
+    return evaluation
 
 # Abbreviation
 better = betterEvaluationFunction
