@@ -291,7 +291,48 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         legal moves.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        actions = gameState.getLegalActions(0)
+        maxValue = float('-inf')
+        maxAction = Directions.STOP
+        for action in actions:
+            successorGameState = gameState.generateSuccessor(0, action)
+            v = self.value(successorGameState, 1, 0);
+            if v > maxValue:
+                maxValue = v
+                maxAction = action
+        return maxAction
+        
+    def value(self, state, agentIndex, depth):
+        # Terminal states or reached maximum depth
+        if depth == self.depth or state.isWin() or state.isLose():
+            return self.evaluationFunction(state)
+        # Pacman is a max player
+        if agentIndex == 0:
+            return self.maxValue(state, agentIndex, depth)
+        # Ghosts are chance players
+        return self.expValue(state, agentIndex, depth)
+        
+    def maxValue(self, state, agentIndex, depth):
+        v = float('-inf')
+        actions = state.getLegalActions(agentIndex)
+        for action in actions:
+            successorGameState = state.generateSuccessor(agentIndex, action)
+            v = max(v, self.value(successorGameState, agentIndex + 1, depth))
+        return v
+    
+    def expValue(self, state, agentIndex, depth):
+        v = 0
+        actions = state.getLegalActions(agentIndex)
+        for action in actions:
+            successorGameState = state.generateSuccessor(agentIndex, action)
+            p = 1/len(actions)
+            # All ghosts moved, increment depth and return to Pacman
+            if agentIndex == state.getNumAgents() - 1:
+                v = v + p * self.value(successorGameState, 0, depth + 1)
+            # Next ghost move
+            else:
+                v = v + p * self.value(successorGameState, agentIndex + 1, depth)
+        return v
 
 def betterEvaluationFunction(currentGameState: GameState):
     """
