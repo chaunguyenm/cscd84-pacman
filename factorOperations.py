@@ -109,8 +109,7 @@ def joinFactors(factors: List[Factor]):
     setsOfConditioned = [set(factor.conditionedVariables()) for factor in factors]
     inputConditionedVariables.extend(setsOfConditioned.difference(setsOfUnconditioned))
     
-    inputVariableDomainsDict = []
-    return Factor(inputUnconditionedVariables, inputConditionedVariables, inputVariableDomainsDict)
+    return Factor(inputUnconditionedVariables, inputConditionedVariables, factor[0].variableDomainsDict)
     "*** END YOUR CODE HERE ***"
 
 ########### ########### ###########
