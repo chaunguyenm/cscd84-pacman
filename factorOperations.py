@@ -102,14 +102,27 @@ def joinFactors(factors: List[Factor]):
 
 
     "*** YOUR CODE HERE ***"
-    inputUnconditionedVariables = []
-    inputUnconditionedVariables.extend(setsOfUnconditioned)
+    allFactors = list(factors)
+    inputUnconditionedVariables = set()
+    inputConditionedVariables = set()
+    for factor in allFactors:
+        for var in factor.unconditionedVariables():
+            inputUnconditionedVariables.add(var)
+        for var in factor.conditionedVariables():
+            inputConditionedVariables.add(var)
+    inputConditionedVariables = inputConditionedVariables.difference(inputUnconditionedVariables)
+
+    variableDomainsDict = allFactors[0].variableDomainsDict()
+
+    joinedFactor = Factor(inputUnconditionedVariables, inputConditionedVariables, variableDomainsDict)
+
+    for assignmentDict in joinedFactor.getAllPossibleAssignmentDicts():
+        value = 1
+        for factor in factors:
+            value = value * factor.getProbability(assignmentDict)
+        joinedFactor.setProbability(assignmentDict, value)
     
-    inputConditionedVariables = []
-    setsOfConditioned = [set(factor.conditionedVariables()) for factor in factors]
-    inputConditionedVariables.extend(setsOfConditioned.difference(setsOfUnconditioned))
-    
-    return Factor(inputUnconditionedVariables, inputConditionedVariables, factor[0].variableDomainsDict)
+    return joinedFactor
     "*** END YOUR CODE HERE ***"
 
 ########### ########### ###########
